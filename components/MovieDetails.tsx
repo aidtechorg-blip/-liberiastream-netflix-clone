@@ -144,16 +144,21 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({
   };
 
   const handleMouseMove = () => {
-    // On mobile/touch, keep controls visible
-    if (isCoarsePointer) {
-      setShowControls(true);
-      return;
-    }
     setShowControls(true);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     controlsTimeoutRef.current = setTimeout(() => {
       if (isPlaying) setShowControls(false);
-    }, 3000);
+    }, 2500);
+  };
+
+  const handleTouchStart = (e?: React.TouchEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setShowControls(true);
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (isPlaying) setShowControls(false);
+    }, 2500);
   };
 
   const togglePlay = (e?: React.MouseEvent) => {
@@ -230,6 +235,8 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({
           ref={playerRef}
           className="relative aspect-video w-full bg-black group overflow-hidden"
           onMouseMove={handleMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchStart}
           onClick={togglePlay}
         >
           <div className="absolute inset-x-0 top-0 h-full w-full scale-[1.15] origin-center">
@@ -237,12 +244,14 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({
           </div>
 
           {/* Custom Overlay */}
-          <div className={`player-control-overlay absolute inset-0 transition-all duration-500 overflow-hidden flex flex-col justify-between ${(isCoarsePointer || showControls || !isPlaying) ? 'opacity-100' : 'opacity-0'} ${!isPlaying ? 'bg-black/70 backdrop-blur-sm' : 'bg-gradient-to-t from-black/80 via-transparent to-black/40'}`}>
-            {/* Top Info */}
-            <div className="p-6 sm:p-10 pointer-events-none">
-              <h1 className="text-xl sm:text-3xl font-bold text-white drop-shadow-md">{movie.title}</h1>
-              <p className="text-sm text-gray-300 mt-2">{movie.category} • {movie.year}</p>
-            </div>
+          <div className={`player-control-overlay absolute inset-0 transition-all duration-500 overflow-hidden flex flex-col justify-between ${(showControls || !isPlaying) ? 'opacity-100' : 'opacity-0'} ${!isPlaying ? 'bg-black/70 backdrop-blur-sm' : 'bg-gradient-to-t from-black/80 via-transparent to-black/40'}`}>
+            {/* Top Info: hide while playing unless controls are shown */}
+            {(showControls || !isPlaying) && (
+              <div className="p-6 sm:p-10 pointer-events-none">
+                <h1 className="text-xl sm:text-3xl font-bold text-white drop-shadow-md">{movie.title}</h1>
+                <p className="text-sm text-gray-300 mt-2">{movie.category} • {movie.year}</p>
+              </div>
+            )}
 
             {/* Buffering Spinner */}
             {isBuffering && (
