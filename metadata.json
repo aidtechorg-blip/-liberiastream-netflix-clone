@@ -1,0 +1,8 @@
+{
+  "name": "LiberiaStream (Netflix Clone)",
+  "description": "A premium streaming experience tailored for Liberia, featuring Liberian cinema, Afrobeat hits, and global blockbusters with AI-powered recommendations.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
