@@ -36,6 +36,7 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isBuffering, setIsBuffering] = useState(true);
+  const [isCoarsePointer, setIsCoarsePointer] = useState(false);
 
   const playerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,6 +64,12 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({
   }, [player, isPlaying]);
 
   useEffect(() => {
+    // Detect coarse pointer (mobile/touch) to keep controls always visible
+    const mq = window.matchMedia('(pointer: coarse)');
+    const updateCoarse = () => setIsCoarsePointer(!!mq.matches);
+    updateCoarse();
+    try { mq.addEventListener('change', updateCoarse); } catch { mq.addListener(updateCoarse); }
+
     const initPlayer = () => {
       const videoId = getVideoId(currentVideoUrl);
       if (!videoId || !window.YT) return;
@@ -118,6 +125,7 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({
 
     return () => {
       // Don't destroy on video change, only on unmount
+      try { mq.removeEventListener('change', updateCoarse); } catch { mq.removeListener(updateCoarse); }
     };
   }, [currentVideoUrl]);
 
@@ -136,6 +144,11 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({
   };
 
   const handleMouseMove = () => {
+    // On mobile/touch, keep controls visible
+    if (isCoarsePointer) {
+      setShowControls(true);
+      return;
+    }
     setShowControls(true);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     controlsTimeoutRef.current = setTimeout(() => {
@@ -224,7 +237,7 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({
           </div>
 
           {/* Custom Overlay */}
-          <div className={`player-control-overlay absolute inset-0 transition-all duration-500 overflow-hidden flex flex-col justify-between ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'} ${!isPlaying ? 'bg-black/70 backdrop-blur-sm' : 'bg-gradient-to-t from-black/80 via-transparent to-black/40'}`}>
+          <div className={`player-control-overlay absolute inset-0 transition-all duration-500 overflow-hidden flex flex-col justify-between ${(isCoarsePointer || showControls || !isPlaying) ? 'opacity-100' : 'opacity-0'} ${!isPlaying ? 'bg-black/70 backdrop-blur-sm' : 'bg-gradient-to-t from-black/80 via-transparent to-black/40'}`}>
             {/* Top Info */}
             <div className="p-6 sm:p-10 pointer-events-none">
               <h1 className="text-xl sm:text-3xl font-bold text-white drop-shadow-md">{movie.title}</h1>

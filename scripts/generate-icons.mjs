@@ -11,6 +11,7 @@ const posterSvg = path.join(root, 'public', 'assets', 'branding', 'liberiastream
 const outDir = path.join(root, 'public', 'icons');
 
 const sizes = [192, 256, 384, 512];
+const faviconSizes = [16, 32, 48];
 
 async function ensureDir(dir) {
   await fs.mkdir(dir, { recursive: true });
@@ -21,6 +22,10 @@ async function buildIcons() {
   const svgBuf = await fs.readFile(iconSvg);
   for (const size of sizes) {
     const outPng = path.join(outDir, `liberiastream_icon_${size}.png`);
+    await sharp(svgBuf).resize(size, size, { fit: 'contain' }).png().toFile(outPng);
+  }
+  for (const size of faviconSizes) {
+    const outPng = path.join(outDir, `liberiastream_favicon_${size}.png`);
     await sharp(svgBuf).resize(size, size, { fit: 'contain' }).png().toFile(outPng);
   }
   // maskable variant: add padding to create safe area
