@@ -4,7 +4,7 @@
    - Static assets (icons, manifest, offline page): cache-first
    - Images: stale-while-revalidate
 */
-const VERSION = 'v1.0.0';
+const VERSION = new URL(self.location.href).searchParams.get('v') || 'v-dev';
 const STATIC_CACHE = `ls-static-${VERSION}`;
 const RUNTIME_CACHE = `ls-runtime-${VERSION}`;
 

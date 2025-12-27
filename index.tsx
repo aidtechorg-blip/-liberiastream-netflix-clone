@@ -18,6 +18,24 @@ root.render(
 // Register service worker for PWA installability
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    const ver = (import.meta as any).env?.VITE_BUILD_VERSION || Date.now().toString();
+    const swUrl = `/sw.js?v=${ver}`;
+    navigator.serviceWorker.register(swUrl).then((reg) => {
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        if (!newSW) return;
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            const doReload = confirm('A new version of LiberiaStream is available. Reload now?');
+            if (doReload) window.location.reload();
+          }
+        });
+      });
+    }).catch(() => {});
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // Ensure the page reloads when the new SW takes control
+      window.location.reload();
+    });
   });
 }
